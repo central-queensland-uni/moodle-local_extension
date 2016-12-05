@@ -46,6 +46,11 @@
     background-color: #00f0ff
 }
 
+.local_extension span.statusmodified {
+    background-color: #ff8a27
+}
+
+
 .local_extension .mform fieldset div {
     margin-left: 0;
 }

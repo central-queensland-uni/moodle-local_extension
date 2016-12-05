@@ -26,7 +26,9 @@
 
 $string['pluginname'] = 'Extension Assignment Adapter';
 $string['dueon'] = 'Due on {$a}';
+$string['extensionuntil'] = 'Extension until';
 $string['requestdue'] = 'Request extension until';
 $string['dueerrorinpast'] = 'Requested date must be in the future';
 $string['dueerrortoosoon'] = 'Requested date must be at least {$a} hours after the due date';
+$string['requestedlength'] = 'Requested extension length';
 

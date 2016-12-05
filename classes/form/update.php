@@ -68,27 +68,7 @@ class update extends \moodleform {
             $stateid = $localcm->cm->state;
             $userid = $localcm->userid;
 
-            // The capability 'local/extension:modifyrequeststatus' allows a user to force change the status.
-            $context = \context_course::instance($course->id, MUST_EXIST);
-            $forcestatus = has_capability('local/extension:modifyrequeststatus', $context);
-
-            // If the users access is either approve or force, then they can see the approval buttons.
-            $approve = (rule::RULE_ACTION_APPROVE | rule::RULE_ACTION_FORCEAPPROVE);
-            $access = rule::get_access($mod, $USER->id);
-
             $handler->status_definition($mod, $mform);
-
-            if ($forcestatus) {
-                $state->render_force_buttons($mform, $stateid, $id);
-
-            } else if ($USER->id == $userid) {
-                $state->render_owner_buttons($mform, $stateid, $id);
-
-            } else if ($access & $approve) {
-                $state->render_approve_buttons($mform, $stateid, $id);
-
-            }
-
         }
 
         $html = '';

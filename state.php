@@ -36,6 +36,7 @@ $requestid = required_param('id', PARAM_INT);
 $courseid = required_param('course', PARAM_INT);
 $cmid = required_param('cmid', PARAM_INT);
 $stateid = required_param('s', PARAM_INT);
+$modified = optional_param('modified', 0, PARAM_INT);
 
 $request = utility::cache_get_request($requestid);
 
@@ -96,6 +97,7 @@ $params = array(
     'instance' => $mod->handler->get_instance($mod),
     'state' => $stateid,
     'user' => $requestuser,
+    'modified' => $modified,
 );
 
 $PAGE->navbar->ignore_active();
@@ -153,6 +155,7 @@ if ($mform->is_cancelled()) {
     $data->userid = $request->request->userid;
     $data->course = $courseid;
     $data->s = $stateid;
+    $data->modified = $modified;
     $mform->set_data($data);
 }
 

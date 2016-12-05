@@ -192,13 +192,8 @@ $string['page_index_courses'] = 'Unit Code';
 $string['page_index_faculties'] = 'Unit Category';
 $string['page_index_mycourses'] = 'My Units';
 $string['page_index_toomanycourses'] = 'Too many courses, please search or filter by category.';
-$string['page_modify_comment'] = '
-The extension length has been modified.
-
-{$a->course}, {$a->event}
-
-Requested extension date: {$a->original}
-Modified extension date: {$a->new}
+$string['page_modify_comment'] = 'Current requested extension date: {$a->original}
+Modified requested extension date: {$a->new}
 
 Time difference: {$a->diff}
 Extension length: {$a->length}';
@@ -229,19 +224,25 @@ $string['searchforwardmaxweekshelp'] = 'The number of weeks allowed to search fo
 $string['searchforwardmaxweeks'] = 'Maximum weeks searching forward';
 $string['searchbackwardmaxweekshelp'] = 'The number of weeks allowed to search backward when making a request.';
 $string['searchbackwardmaxweeks'] = 'Maximum weeks searching backward';
+$string['statemodify_button_approve'] = 'Approve modification';
+$string['statemodify_button_cancel'] = 'Cancel modification';
+$string['statemodify_button_deny'] = 'Deny modification';
+$string['statemodify_button_reopen'] = 'Reopen modification';
 $string['state_approved'] = '<span class="statusapproved label">Granted</span>';
-$string['state_button_approve'] = 'Approve request';
-$string['state_button_cancel'] = 'Cancel request';
-$string['state_button_deny'] = 'Deny request';
-$string['state_button_reopen'] = 'Reopen request';
+$string['state_button_approve'] = 'Approve extension request';
+$string['state_button_cancel'] = 'Cancel extension request';
+$string['state_button_deny'] = 'Deny extension request';
+$string['state_button_reopen'] = 'Reopen extension request';
 $string['state'] = 'State';
 $string['state_cancel'] = '<span class="statuscancel label">Cancelled</span>';
 $string['state_denied'] = '<span class="statusdenied label">Denied</span>';
 $string['state_new'] = '<span class="statusnew label">New</span>';
 $string['state_reopened'] = '<span class="statusreopened label">Reopened</span>';
+$string['state_modified'] = '<span class="statusmodified label">Modified</span>';
 $string['state_result_approved'] = 'Approved';
 $string['state_result_cancelled'] = 'Cancelled';
 $string['state_result_denied'] = 'Denied';
+$string['state_result_modified'] = 'Modified';
 $string['state_result_pending'] = 'Pending';
 $string['status_file_attachment'] = 'File attached {$a}';
 $string['status_status_line'] = '{$a->status} extension request for {$a->length} until {$a->date}.';

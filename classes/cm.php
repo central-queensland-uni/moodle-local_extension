@@ -74,7 +74,7 @@ class cm {
         $cm = new cm($cmid, null, $requestid);
 
         $conditions = array('cmid' => $cm->cmid, 'request' => $cm->requestid);
-        $record = $DB->get_record('local_extension_cm', $conditions, 'cmid,course,data,id,request,state,length,userid');
+        $record = $DB->get_record('local_extension_cm', $conditions, 'cmid,course,data,id,request,state,length,lengthprev,userid');
 
         if (!empty($record)) {
             $cm->userid = $record->userid;
@@ -197,6 +197,34 @@ class cm {
     public function get_data() {
         if (!empty($this->cm)) {
             return $this->cm->data;
+
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the cm previous length
+     *
+     * @return mixed
+     */
+    public function get_length_previous() {
+        if (!empty($this->cm)) {
+            return $this->cm->lengthprev;
+
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the cm length
+     *
+     * @return mixed
+     */
+    public function get_length() {
+        if (!empty($this->cm)) {
+            return $this->cm->length;
 
         } else {
             return null;

@@ -156,7 +156,7 @@ class request extends \local_extension\base_request {
 
         $extensionlength = utility::calculate_length($lcm->cm->length);
         if ($extensionlength) {
-            $mform->addElement('static', 'cutoffdate', 'Current extension length', $extensionlength);
+            $mform->addElement('static', 'cutoffdate', 'Requested extension length', $extensionlength);
         }
 
         $this->date_selector($mod, $mform, false);
@@ -172,11 +172,13 @@ class request extends \local_extension\base_request {
      * @return string
      */
     public function status_definition($mod, $mform = null) {
-        global $USER;
+        global $USER, $DB;
 
         $event = $mod->event;
         $course = $mod->course;
         $localcm = $mod->localcm;
+        $cm = $mod->cm;
+        $state = state::instance();
 
         $requestid = $localcm->requestid;
         $cmid = $localcm->cmid;
@@ -197,8 +199,8 @@ class request extends \local_extension\base_request {
 
         $obj = new \stdClass();
         $obj->status = $status;
-        $obj->date = userdate($localcm->cm->data);
         $obj->length = utility::calculate_length($localcm->cm->length);
+        $obj->date = userdate($localcm->cm->data);
 
         $status  = \html_writer::start_tag('p', array('class' => 'time'));
         $status .= get_string('status_status_line', 'local_extension', $obj);
@@ -222,7 +224,57 @@ class request extends \local_extension\base_request {
 
         $status .= \html_writer::end_tag('p');
         $html .= $status;
-        $html .= \html_writer::end_div(); // End .content.
+        if (!empty($mform)) {
+            $mform->addElement('html', $html);
+
+            // If the users access is either approve or force, then they can see the approval buttons.
+            if ($forcestatus) {
+                $state->render_force_buttons($mform, $localcm->get_stateid(), $localcm->cmid);
+
+            } else if ($USER->id == $localcm->userid) {
+                $state->render_owner_buttons($mform, $localcm->get_stateid(), $localcm->cmid);
+
+            } else if ($access & $approve) {
+                $state->render_approve_buttons($mform, $localcm->get_stateid(), $localcm->cmid);
+            }
+        }
+
+        // Check to see if the current assign has the extensionduedate set.
+        $context = \context_module::instance($cm->id);
+        $assign = new \assign($context, $cm, $course);
+        $flags = $assign->get_user_flags($localcm->userid, false);
+
+        // Extensionduedate is set, an extension must have been approved!
+        if ($flags && !empty($flags->extensionduedate)) {
+            $existing = \html_writer::start_tag('p', array('class' => 'time'));
+            $obj = new \stdClass();
+            $obj->status = $state->get_state_name(state::STATE_APPROVED);
+
+            // Existing due date minus event time start is the previous existing extension length.
+            $previouslength = $flags->extensionduedate - $event->timestart;
+            $obj->length = utility::calculate_length($previouslength);
+            $obj->date = userdate($flags->extensionduedate);
+            $existing .= get_string('status_status_line', 'local_extension', $obj);
+            $existing .= \html_writer::end_tag('p');
+
+            // Only display a previously granted extension if the length values do not match.
+            if($previouslength != $localcm->cm->length) {
+                $mform->addElement('html', $existing);
+
+                // If the users access is either approve or force, then they can see the approval buttons.
+                if ($forcestatus) {
+                    $state->render_force_buttons($mform, state::STATE_APPROVED, $localcm->cmid);
+
+                } else if ($USER->id == $localcm->userid) {
+                    $state->render_owner_buttons($mform, state::STATE_APPROVED, $localcm->cmid);
+
+                } else if ($access & $approve) {
+                    $state->render_approve_buttons($mform, state::STATE_APPROVED, $localcm->cmid);
+                }
+            }
+        }
+
+        $html = \html_writer::end_div(); // End .content.
 
         if (!empty($mform)) {
             $mform->addElement('html', $html);
@@ -244,8 +296,10 @@ class request extends \local_extension\base_request {
 
         $event = $mod->event;
         $course = $mod->course;
+        $localcm = $mod->localcm;
 
         $instance = $customdata['instance'];
+        $modified = $customdata['modified'];
         $user = $customdata['user'];
 
         $html = \html_writer::start_div('content');
@@ -264,6 +318,12 @@ class request extends \local_extension\base_request {
         }
 
         $mform->addElement('static', 'duedate', get_string('duedate', 'assign'), userdate($instance->duedate));
+
+        if ($modified) {
+            $mform->addElement('static', 'duedate', get_string('extensionuntil', 'extension_assign'), userdate($instance->duedate + $localcm->get_length_previous()));
+        } else {
+            $mform->addElement('static', 'duedate', get_string('extensionuntil', 'extension_assign'), userdate($instance->duedate + $localcm->get_length()));
+        }
 
         return $html;
     }

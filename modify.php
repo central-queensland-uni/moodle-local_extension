@@ -24,6 +24,7 @@
  */
 
 use local_extension\utility;
+use local_extension\state;
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/assign/locallib.php');
@@ -101,6 +102,7 @@ if ($mform->is_cancelled()) {
     redirect($statusurl);
 
 } else if ($form = $mform->get_data()) {
+    $notifycontent = array();
     // TODO Edge cases with lowering the length beyond set triggers. Deal with changes / triggers.
     $cm = $request->cms[$cmid];
     $event = $request->mods[$cmid]->event;
@@ -127,10 +129,16 @@ if ($mform->is_cancelled()) {
     $datestring = get_string('page_modify_comment', 'local_extension', $obj);
 
     $cm->cm->data = $newdate;
+    $cm->cm->lengthprev = $cm->cm->length;
     $cm->cm->length = $newdate - $event->timestart;
+    $cm->cm->state = state::STATE_MODIFIED;
     $cm->update_data();
 
-    $notifycontent = array();
+    $data = new \stdClass();
+    $data->s = state::STATE_MODIFIED;
+    $data->cmid = $cmid;
+    $notifycontent[] = state::instance()->update_cm_state($request, $USER, $data);
+
     $notifycontent[] = $request->add_comment($USER, $datestring);
 
     // If the date has changed, we need to run the triggers to see if we alert new subscribers.

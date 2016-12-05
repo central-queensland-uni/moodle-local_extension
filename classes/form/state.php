@@ -49,6 +49,7 @@ class state extends \moodleform {
         $request  = $this->_customdata['request'];
         $cmid     = $this->_customdata['cmid'];
         $state    = $this->_customdata['state'];
+        $modified = $this->_customdata['modified'];
         $mods     = $request->mods;
 
         $mform->addElement('hidden', 'id');
@@ -66,6 +67,9 @@ class state extends \moodleform {
         $mform->addElement('hidden', 's');
         $mform->setType('s', PARAM_INT);
 
+        $mform->addElement('hidden', 'modified');
+        $mform->setType('modified', PARAM_INT);
+
         $mod = $mods[$cmid];
         $handler = $mod->handler;
 
@@ -77,7 +81,12 @@ class state extends \moodleform {
 
         $handler->status_change_definition($mod, $mform, $this->_customdata);
 
-        $extensionlength = \local_extension\utility::calculate_length($lcm->cm->length);
+        if ($modified) {
+            $extensionlength = \local_extension\utility::calculate_length($lcm->cm->lengthprev);
+        } else {
+            $extensionlength = \local_extension\utility::calculate_length($lcm->cm->length);
+        }
+
         $mform->addElement('static', 'extensionlength', 'Extension length', $extensionlength);
 
         $currentstate = \local_extension\state::instance()->get_state_name($lcm->cm->state);

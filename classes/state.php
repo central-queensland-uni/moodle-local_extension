@@ -54,6 +54,9 @@ class state {
     /** @var int Cancelled request. */
     const STATE_CANCEL = 5;
 
+    /** @var int Modified request. */
+    const STATE_MODIFIED = 6;
+
     /** @var array An array of state ids */
     public $statearray = array();
 
@@ -80,6 +83,7 @@ class state {
             self::STATE_DENIED => 'deny',
             self::STATE_REOPENED => 'reopen',
             self::STATE_CANCEL => 'cancel',
+            self::STATE_MODIFIED => 'modify',
         );
     }
 
@@ -98,8 +102,8 @@ class state {
     public static function can_modify_length_state($stateid) {
         switch ($stateid) {
             case self::STATE_NEW;
-                return true;
             case self::STATE_REOPENED:
+            case self::STATE_MODIFIED:
                 return true;
             default:
                 return false;
@@ -125,6 +129,8 @@ class state {
                 return \get_string('state_reopened', 'local_extension');
             case self::STATE_CANCEL:
                 return \get_string('state_cancel',   'local_extension');
+            case self::STATE_MODIFIED:
+                return \get_string('state_modified',   'local_extension');
             default:
                 throw new \coding_exception('Unknown cm state.');
         }
@@ -148,6 +154,8 @@ class state {
                 return \get_string('state_result_approved',  'local_extension');
             case self::STATE_CANCEL:
                 return \get_string('state_result_cancelled', 'local_extension');
+            case self::STATE_MODIFIED:
+                return \get_string('state_result_modified', 'local_extension');
             default:
                 throw new \coding_exception('Unknown cm state.');
         }
@@ -164,6 +172,7 @@ class state {
         switch ($stateid) {
             case self::STATE_NEW:
             case self::STATE_REOPENED:
+            case self::STATE_MODIFIED:
                 return true;
 
             case self::STATE_DENIED:
@@ -195,10 +204,8 @@ class state {
 
         switch ($state) {
             case self::STATE_NEW:
-                $buttonarray[] = $mform->createElement('submit', $approve . $id, $approvestr);
-                $buttonarray[] = $mform->createElement('submit', $deny . $id, $denystr);
-                break;
             case self::STATE_REOPENED:
+            case self::STATE_MODIFIED:
                 $buttonarray[] = $mform->createElement('submit', $approve . $id, $approvestr);
                 $buttonarray[] = $mform->createElement('submit', $deny . $id, $denystr);
                 break;
@@ -256,15 +263,28 @@ class state {
     public function render_force_buttons(&$mform, $state, $id) {
         $buttonarray = array();
 
-        $approvestr = get_string('state_button_approve', 'local_extension');
-        $cancelstr = get_string('state_button_cancel', 'local_extension');
-        $denystr = get_string('state_button_deny', 'local_extension');
-        $reopenstr = get_string('state_button_reopen', 'local_extension');
-
         $deny = $this->statearray[self::STATE_DENIED];
         $approve = $this->statearray[self::STATE_APPROVED];
         $cancel = $this->statearray[self::STATE_CANCEL];
         $reopen = $this->statearray[self::STATE_REOPENED];
+
+        if ($state == state::STATE_MODIFIED) {
+            $approvestr = get_string('statemodify_button_approve', 'local_extension');
+            $cancelstr = get_string('statemodify_button_cancel', 'local_extension');
+            $denystr = get_string('statemodify_button_deny', 'local_extension');
+            $reopenstr = get_string('statemodify_button_reopen', 'local_extension');
+
+            $modified = $this->statearray[self::STATE_MODIFIED];
+            $deny = $modified . $deny;
+            $approve = $modified . $approve;
+            $cancel = $modified . $cancel;
+            $reopen = $modified . $reopen;
+        } else {
+            $approvestr = get_string('state_button_approve', 'local_extension');
+            $cancelstr = get_string('state_button_cancel', 'local_extension');
+            $denystr = get_string('state_button_deny', 'local_extension');
+            $reopenstr = get_string('state_button_reopen', 'local_extension');
+        }
 
         switch ($state) {
             case self::STATE_NEW:
@@ -289,6 +309,11 @@ class state {
                 $buttonarray[] = $mform->createElement('submit', $deny . $id, $denystr);
                 $buttonarray[] = $mform->createElement('submit', $cancel . $id, $cancelstr);
                 break;
+            case self::STATE_MODIFIED:
+                $buttonarray[] = $mform->createElement('submit', $approve . $id, $approvestr);
+                $buttonarray[] = $mform->createElement('submit', $deny . $id, $denystr);
+                $buttonarray[] = $mform->createElement('submit', $cancel . $id, $cancelstr);
+                break;
             default:
                 break;
         }
@@ -309,19 +334,40 @@ class state {
         foreach ($request->mods as $id => $mod) {
             // Iterate over the possible states.
             foreach ($this->statearray as $state => $name) {
+                $params = array(
+                    'id' => $request->requestid,
+                    'course' => $mod->cm->course,
+                    'cmid' => $mod->cm->id,
+                    's' => $state,
+                );
+
                 // A state could be approve19.
                 $item = $name . $id;
-
                 // We found it! The state has changed.
                 if (!empty($data->$item)) {
-                    $cm = $mod->cm;
-                    $params = array(
-                        'id' => $request->requestid,
-                        'course' => $cm->course,
-                        'cmid' => $cm->id,
-                        's' => $state,
-                    );
+                     redirect(new \moodle_url('/local/extension/state.php', $params));
+                }
 
+                // Or if it was modified.
+                // A state could be modifiedapprove19.
+                $item = $this->statearray[state::STATE_MODIFIED] . $name . $id;
+                if (!empty($data->$item)) {
+                    // Denying a modification will change it to a reopened state. We're not denying the extension.
+                    if ($state == state::STATE_CANCEL || $state == state::STATE_DENIED) {
+                        $params['s'] = state::STATE_REOPENED;
+                    }
+
+                    // Check to see if the current assign has the extensionduedate set.
+                    $context = \context_module::instance($mod->cm->id);
+                    $assign = new \assign($context, $mod->cm, $mod->course);
+                    $flags = $assign->get_user_flags($mod->localcm->userid, false);
+
+                    // Extensionduedate is set, an extension must have been approved!
+                    if ($flags && !empty($flags->extensionduedate)) {
+                        $params['s'] = state::STATE_APPROVED;
+                    }
+
+                    $params['modified'] = 1;
                     redirect(new \moodle_url('/local/extension/state.php', $params));
                 }
             }
@@ -364,6 +410,11 @@ class state {
                    $state == self::STATE_DENIED) {
             $handler->cancel_extension($event->instance,
                                        $request->request->userid);
+        } else if ($state == self::STATE_REOPENED && $data->modified == 1) {
+            $localcm->cm->data = $event->timestart + $localcm->cm->lengthprev;
+            $localcm->cm->length = $localcm->cm->lengthprev;
+            $localcm->cm->lengthprev = 0;
+            $localcm->update_data();
         }
 
         $ret = $localcm->set_state($state);
@@ -440,6 +491,17 @@ class state {
                     $states = array(
                         self::STATE_CANCEL,
                         self::STATE_DENIED,
+                    );
+                }
+                break;
+
+            case self::STATE_MODIFIED:
+                if ($approved) {
+                    $states = array(
+                        self::STATE_APPROVED,
+                        self::STATE_CANCEL,
+                        self::STATE_DENIED,
+                        self::STATE_REOPENED,
                     );
                 }
                 break;
