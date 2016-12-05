@@ -400,21 +400,26 @@ class state {
 
         $state = $data->s;
 
+        if (!empty($data->modified)) {
+            if ($state == self::STATE_REOPENED) {
+                $localcm->cm->data = $event->timestart + $localcm->cm->lengthprev;
+                $localcm->cm->length = $localcm->cm->lengthprev;
+                $localcm->cm->lengthprev = 0;
+                $localcm->update_data();
+            }
+
+        }
+
         // The extension has been approved. Lets hook into the handler and extend the items length.
         if ($state == self::STATE_APPROVED) {
             $handler->submit_extension($event->instance,
-                                       $request->request->userid,
-                                       $localcm->cm->data);
+                $request->request->userid,
+                $localcm->cm->data);
 
         } else if ($state == self::STATE_CANCEL ||
-                   $state == self::STATE_DENIED) {
+            $state == self::STATE_DENIED) {
             $handler->cancel_extension($event->instance,
-                                       $request->request->userid);
-        } else if ($state == self::STATE_REOPENED && $data->modified == 1) {
-            $localcm->cm->data = $event->timestart + $localcm->cm->lengthprev;
-            $localcm->cm->length = $localcm->cm->lengthprev;
-            $localcm->cm->lengthprev = 0;
-            $localcm->update_data();
+                $request->request->userid);
         }
 
         $ret = $localcm->set_state($state);
