@@ -39,6 +39,7 @@ matrix:
       env: DB=pgsql MOODLE_BRANCH=master
 
 before_install:
+  - sudo hostname short-hostname
   - phpenv config-rm xdebug.ini
   - cd ../..
   - if [ "$CI_PLUGIN" = 2 ]; then
