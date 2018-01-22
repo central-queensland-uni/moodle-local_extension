@@ -166,7 +166,6 @@ $string['form_rule_select_forceapprove'] = 'Force Approve';
 $string['form_rule_select_subscribe'] = 'Subscribe';
 $string['form_rule_template'] = 'template';
 $string['form_rule_time_elapsed'] = 'Time elapsed from request date';
-$string['form_rule_validate_duplicate_files'] = 'You can not upload files with a duplicate name. Please remove or rename {$a}.';
 $string['form_rule_validate_elapsed'] = 'You must enter a number that is less than the request length';
 $string['form_rule_validate_greater_equal_to_zero'] = 'You must enter a number equal or greater than zero here';
 $string['form_rule_validate_greater_than_zero'] = 'You must enter a number greater than zero here';

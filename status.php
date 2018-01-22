@@ -23,6 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use local_extension\attachment_processor;
 use local_extension\state;
 use local_extension\utility;
 
@@ -102,6 +103,9 @@ if ($mform->is_cancelled()) {
     $draftfiles = $fs->get_area_files($draftcontext->id, 'user', 'draft', $draftitemid, 'id');
     $oldfiles = $fs->get_area_files($usercontext->id, 'local_extension', 'attachments', $itemid, 'id');
 
+    $processor = new attachment_processor($oldfiles);
+    $draftfiles = $processor->rename_new_files($draftfiles);
+
     $notifycontent = array();
 
     // File count must be greater that 1, as an item is the directory '.'.
@@ -132,20 +136,7 @@ if ($mform->is_cancelled()) {
 
         file_save_draft_area_files($draftitemid, $usercontext->id, 'local_extension', 'attachments', $itemid);
 
-        $draftnames = array();
-        $oldnames = array();
-
         foreach ($draftfiles as $file) {
-            $draftnames[$file->get_filename()] = $file;
-        }
-
-        foreach ($oldfiles as $file) {
-            $oldnames[$file->get_filename()] = $file;
-        }
-
-        // This diff array will contain all the new files to be attached.
-        $diff = array_diff_key($draftnames, $oldnames);
-        foreach ($diff as $file) {
             $notifycontent[] = $request->add_attachment_history($file);
         }
     }
