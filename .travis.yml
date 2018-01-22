@@ -9,53 +9,41 @@ cache:
     - $HOME/.npm
 
 php:
-  - 5.6
-# - 7.0
+  - 7.0
 
 addons:
   postgresql: "9.3"
 
-matrix:
-  allow_failures:
-#   - php: 7.0
-
 env:
   matrix:
-    - DB=pgsql MOODLE_BRANCH=MOODLE_27_STABLE
-    - DB=pgsql MOODLE_BRANCH=MOODLE_28_STABLE
-    - DB=pgsql MOODLE_BRANCH=MOODLE_29_STABLE
-    - DB=mysqli MOODLE_BRANCH=MOODLE_27_STABLE
-    - DB=mysqli MOODLE_BRANCH=MOODLE_28_STABLE
-    - DB=mysqli MOODLE_BRANCH=MOODLE_29_STABLE
+    - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE
+    - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE CI_PLUGIN=2
+    - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE CI_PLUGIN=2
+    - DB=pgsql MOODLE_BRANCH=MOODLE_34_STABLE CI_PLUGIN=2
+    - DB=pgsql MOODLE_BRANCH=master CI_PLUGIN=2
+    - DB=mysqli MOODLE_BRANCH=MOODLE_31_STABLE
+    - DB=mysqli MOODLE_BRANCH=MOODLE_32_STABLE CI_PLUGIN=2
+    - DB=mysqli MOODLE_BRANCH=MOODLE_33_STABLE CI_PLUGIN=2
+    - DB=mysqli MOODLE_BRANCH=MOODLE_34_STABLE CI_PLUGIN=2
+    - DB=mysqli MOODLE_BRANCH=master CI_PLUGIN=2
 
 matrix:
   include:
-    - php: 7.0
-      env: DB=pgsql MOODLE_BRANCH=MOODLE_30_STABLE
-    - php: 7.0
+    - php: 5.6
       env: DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE
-    - php: 7.1
-      env: DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE CI_PLUGIN=2
-    - php: 7.1
-      env: DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE CI_PLUGIN=2
-    - php: 7.1
-      env: DB=pgsql MOODLE_BRANCH=master CI_PLUGIN=2
-    - php: 7.0
-      env: DB=mysqli MOODLE_BRANCH=MOODLE_30_STABLE
-    - php: 7.0
+    - php: 5.6
       env: DB=mysqli MOODLE_BRANCH=MOODLE_31_STABLE
     - php: 7.1
-      env: DB=mysqli MOODLE_BRANCH=MOODLE_32_STABLE CI_PLUGIN=2
-    - php: 7.1
-      env: DB=mysqli MOODLE_BRANCH=MOODLE_33_STABLE CI_PLUGIN=2
-    - php: 7.1
-      env: DB=mysqli MOODLE_BRANCH=master CI_PLUGIN=2
+      env: DB=mysqli MOODLE_BRANCH=master
+    - php: 7.2
+      env: DB=pgsql MOODLE_BRANCH=master
 
 before_install:
   - phpenv config-rm xdebug.ini
   - cd ../..
   - if [ "$CI_PLUGIN" = 2 ]; then
       nvm install node;
+      nvm use 8.9;
       composer create-project -n --no-dev --prefer-dist moodlerooms/moodle-plugin-ci ci ^2;
     else
       composer create-project -n --no-dev --prefer-dist moodlerooms/moodle-plugin-ci ci ^1;
@@ -63,7 +51,7 @@ before_install:
   - export PATH="$(cd ci/bin; pwd):$(cd ci/vendor/bin; pwd):$PATH"
 
 install:
-  - moodle-plugin-ci install
+  - moodle-plugin-ci install -vvv
 
 script:
   - moodle-plugin-ci phplint
