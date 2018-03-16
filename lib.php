@@ -84,7 +84,8 @@ function local_extension_extends_navigation(global_navigation $nav) {
 
             $coursenode = $nav->find($courseid, navigation_node::TYPE_COURSE);
             if (!empty($coursenode)) {
-                $requests = \local_extension\utility::find_course_requests($courseid);
+                // MOODLE-1519 Workaround.
+                $requests = null; // \local_extension\utility::find_course_requests($courseid);
 
                 if (empty($requests)) {
                     // Display the request extension link.
