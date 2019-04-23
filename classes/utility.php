@@ -70,6 +70,8 @@ class utility {
 
         $dates = [];
 
+        echo "Getting activities for user $userid for cmid $cmid";
+
         $mods = \local_extension\plugininfo\extension::get_enabled_request();
 
         // To be efficient we do a single search through the calendar and then
@@ -79,11 +81,25 @@ class utility {
 
         // A list of courses that the $request->userid is enrolled in, this will be passed to the next filters.
         $courses = enrol_get_users_courses($userid);
+        $countcourses = count($courses);
+
+        echo "User $userid has $countcourses courses";
+        foreach ($courses as $course) {
+            echo "course id: $course->id, course shortname: $course->shortname";
+        }
 
         // Get the events matching our criteria.
         list($courses, $group, $user2) = calendar_set_filters($courses);
 
+        echo count($courses) . "number of courses found .";
         $allevents = calendar_get_events($start, $end, [$userid], $groups, $courses);
+        $countallevents = count($allevents);
+
+
+        echo "number of events: $countallevents";
+        foreach ($allevents as $allevent) {
+            echo "Name: $allevent->name, id: $allevent->id, visible: $allevent->visible, instance: $allevent->instance";
+        }
 
         $events = [];
         $courses = [];
@@ -91,16 +107,20 @@ class utility {
         $ruleignoredatatype = get_config('local_extension', 'ruleignoredatatype');
         if ($ruleignoredatatype) {
             $rulesdata = rule::load_all();
+            echo "Applying some rules";
         } else {
             $rulesdata = [];
+            echo "rulesdata is empty. ";
         }
 
         foreach ($allevents as $id => $event) {
 
             $modtype = $event->modulename;
 
+            echo "New assignment --- event name: $event->name, eventid: $event->id, instance: $event->instance, modtype: $modtype";
             // First filter to only activities that have an extension plugin.
             if (!isset($mods[$modtype])) {
+                echo "activity does not have an extension plugin, skipping... ";
                 continue;
             }
 
@@ -115,12 +135,17 @@ class utility {
             }
 
             if (empty($rules)) {
+                echo "rules is empty, skipping this assignment. ";
                 continue;
             }
 
             $handler = $mods[$modtype];
+            if (isset($handler->rules)) {
+                echo $handler->rules;
+            }
 
             if (!$cm = get_coursemodule_from_instance($event->modulename, $event->instance)) {
+                echo "could not get coursemodule from instance, skipping... ";
                 continue;
             }
 
@@ -140,6 +165,7 @@ class utility {
                     $usercmsid = $usercmsid->cmid;
                 }
                 if (!in_array($cm->id, $usercmsids)) {
+                    echo "this activity is not visible to the given user, skipping..";
                     continue;
                 }
             }
@@ -148,12 +174,14 @@ class utility {
             // could have a open, due and close, but it may only really care about
             // the due date.
             if (!$handler->is_candidate($event, $cm)) {
+                echo "handler is filtering using it's rules, skipping...";
                 continue;
             }
 
             // Filter based on moduleid.
             if (!empty($cmid)) {
                 if ($cm->id != $cmid) {
+                    echo "cmid $cmid is not the same as cm->id $cm->id, skipping...";
                     continue;
                 }
             }
@@ -161,6 +189,7 @@ class utility {
             // Filter based on courseid.
             if (!empty($cid)) {
                 if ($cm->course != $cid) {
+                    echo "cid $cid is not the same as cm->course $cm->course, skipping...";
                     continue;
                 }
             }
@@ -168,22 +197,26 @@ class utility {
             $courseid = $cm->course;
             if (!isset($courses[$courseid])) {
                 $courses[$courseid] = $DB->get_record('course', ['id' => $courseid]);
+                echo count($courses[$courseid]) . "course found. ";
             }
 
             // If a requestid has been provided, obtain the local cm data for this mod.
             $localcm = null;
             if (!empty($requestid)) {
+                echo "a request id was provided. ";
                 $localcm = cm::from_requestid($cm->id, $requestid);
 
                 // A requestid has been specified, lets list the available local_cms.
 
                 // No local_extension_cm found, we won't need to provide an event.
                 if (empty($localcm->cm)) {
+                    echo "no local extension cm found, skipping...";
                     continue;
                 }
             } else {
                 // Try and obtain a request associated to this user for a course module.
                 $localcm = cm::from_userid($cm->id, $userid);
+                echo "found local cm userid: $localcm->userid, cmid: $localcm->cmid, requestid: $localcm->requestid\n\n";
             }
 
             $data = new \local_extension\mod_data();
@@ -200,9 +233,15 @@ class utility {
         }
 
         if ($requestid > 0) {
+            echo "requestid is not 0";
             $events = self::get_activities_for_requestid($events, $requestid, $userid);
         }
 
+        echo count($events) . "number of events found";
+        foreach ($events as $event) {
+            $event = $event->event;
+            echo "Event Name: $event->name, id: $event->id, visible: $event->visible, instance: $event->instance\n\n\n";
+        }
         return $events;
     }
 
