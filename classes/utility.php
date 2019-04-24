@@ -93,7 +93,8 @@ class utility {
 
         echo count($courses) . " courses found in calendar set filters. ";
         if (count($courses) == 1) {
-            echo "Only found this one course with courseid $courses[0]";
+            echo "Only found this one course with courseid";
+            var_dump($courses);
         }
 
         $allevents = calendar_get_events($start, $end, [$userid], $groups, $courses);
