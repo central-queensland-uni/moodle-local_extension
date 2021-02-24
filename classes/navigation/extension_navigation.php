@@ -101,7 +101,7 @@ class extension_navigation {
 
         $url = new moodle_url('/local/extension/request.php', ['course' => $COURSE->id]);
         $label = get_string('nav_request', 'local_extension');
-        $parentnode->add($label, $url, global_navigation::TYPE_COURSE);
+        $parentnode->add($label, $url, global_navigation::TYPE_COURSE, null, "local_extension-course");
     }
 
     private function add_node_in_module() {
@@ -140,13 +140,13 @@ class extension_navigation {
             $result = state::instance()->get_state_result($localcm->get_stateid());
             $label = get_string('nav_status', 'local_extension', $result);
         }
-        $parentnode->add($label, $url, global_navigation::TYPE_COURSE);
+        $parentnode->add($label, $url, global_navigation::TYPE_COURSE, null, "local_extension-module");
     }
 
     private function add_node_in_main_navigation() {
         $url = (new moodle_url('/local/extension/index.php'))->out();
         $nodename = get_string('requestextension_status', 'local_extension');
-        $node = $this->globalnavigation->add($nodename, $url, global_navigation::TYPE_COURSE);
+        $node = $this->globalnavigation->add($nodename, $url, global_navigation::TYPE_COURSE, null, "local_extension");
         $node->showinflatnavigation = true;
     }
 }
