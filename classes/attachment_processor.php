@@ -51,7 +51,7 @@ class attachment_processor {
             if ($oldfile->is_directory()) {
                 continue;
             }
-            $this->existingnames[] = $oldfile->get_filename();
+            $this->existingnames[$oldfile->get_filename()] = $oldfile->get_contenthash();
         }
     }
 
@@ -79,7 +79,14 @@ class attachment_processor {
             return false;
         }
 
-        if (!in_array($file->get_filename(), $this->existingnames)) {
+        if (!array_key_exists($file->get_filename(), $this->existingnames)) {
+            return false;
+        }
+
+        // If the contenthash matches it's likely from duplicate browser requests coming through.
+        // Ignore renaming the file to be safe.
+        $existingcontenthash = $this->existingnames[$file->get_filename()];
+        if ($file->get_contenthash() == $existingcontenthash) {
             return false;
         }
 
@@ -100,7 +107,7 @@ class attachment_processor {
         do {
             $newfilename = "{$prefix} ({$n}){$suffix}";
             $n++;
-        } while (in_array($newfilename, $this->existingnames));
+        } while (array_key_exists($newfilename, $this->existingnames));
 
         $this->existingnames[] = $newfilename;
         return $newfilename;
