@@ -111,6 +111,7 @@ if ($reviewform->is_cancelled()) {
     redirect($PAGE->url);
 
 } else if ($reviewdata = $reviewform->get_data()) {
+    $statusurl = new moodle_url('/local/extension/status.php', ['id' => $requestid]);
 
     // Use the same time for the attachments and comments.
     $time = time();
@@ -118,9 +119,28 @@ if ($reviewform->is_cancelled()) {
     // The review has been confirmed, try to submit the extension request!
     $notifycontent = [];
 
-    // Update the requested cm length.
+    // Extract some variables from the data,
+    // we'll also use this to figure out if multiple browser requests have been sent.
     $due = 'due' . $cmid;
     $newdate = $reviewdata->$due;
+    $comment = $reviewdata->commentarea;
+
+    // Check if this is likely the same request posted multiple times in the last minute.
+    if ($history = $request->get_history()) {
+        $latest = array_pop($history);
+        if ($latest->timestamp > $time - 60) {
+            $usermatch = $latest->userid == $USER->id;
+            $messagematch = $latest->message == $comment;
+            $lengthmatch = $cm->cm->length == $newdate - $event->timestart;
+            if ($usermatch && $messagematch && $lengthmatch) {
+                // Looks like we have a match, redirect the user to the status page.
+                redirect($statusurl);
+                exit();
+            }
+        }
+    }
+
+    // Update the requested cm length.
     $cm->cm->data = $newdate;
     $cm->cm->length = $newdate - $event->timestart;
     $cm->update_data();
@@ -130,7 +150,6 @@ if ($reviewform->is_cancelled()) {
     $notifycontent[] = \local_extension\state::instance()->update_cm_state($request, $USER, $reviewdata, $time);
 
     // Adding the comment to the notify content.
-    $comment = $reviewdata->commentarea;
     if (!empty($comment)) {
         $notifycontent[] = $request->add_comment($USER, $comment, $time);
     }
@@ -215,8 +234,7 @@ if ($reviewform->is_cancelled()) {
     // Invalidate the cache for this request. The content has changed.
     $request->get_data_cache()->delete($request->requestid);
 
-    $url = new moodle_url('/local/extension/status.php', ['id' => $requestid]);
-    redirect($url);
+    redirect($statusurl);
 }
 
 // Output the initial form to request an additional extension.
