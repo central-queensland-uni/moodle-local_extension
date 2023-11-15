@@ -147,7 +147,8 @@ if ($mform->is_cancelled()) {
 
     $notifycontent[] = state::instance()->update_cm_state($request, $USER, $form, $time);
 
-    $notifycontent[] = $request->add_comment($USER, $datestring, $time);
+    $validationtime = $form->validationtime;
+    $notifycontent[] = $request->add_comment($USER, $datestring, $time, $validationtime);
 
     // Notify the core set of subscribers with updated details.
     $request->notify_subscribers($notifycontent, $USER->id);

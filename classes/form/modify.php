@@ -71,6 +71,9 @@ class modify extends \moodleform {
 
         $mform->addElement('hidden', 'userid');
         $mform->setType('userid', PARAM_INT);
+
+        $mform->addElement('hidden', 'validationtime', time());
+        $mform->setType('validationtime', PARAM_INT);
     }
 
     /**

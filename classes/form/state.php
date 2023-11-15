@@ -69,6 +69,9 @@ class state extends \moodleform {
         $mform->addElement('hidden', 's');
         $mform->setType('s', PARAM_INT);
 
+        $mform->addElement('hidden', 'validationtime', time());
+        $mform->setType('validationtime', PARAM_INT);
+
         $mod = $mods[$cmid];
 
         $lcm = $mod->localcm;

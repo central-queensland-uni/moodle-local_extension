@@ -78,7 +78,8 @@ class provider implements
                 'userid' => 'privacy:metadata:local_extension_comment:userid',
                 'request' => 'privacy:metadata:local_extension_comment:request',
                 'timestamp' => 'privacy:metadata:local_extension_comment:timestamp',
-                'message' => 'privacy:metadata:local_extension_comment:message'
+                'message' => 'privacy:metadata:local_extension_comment:message',
+                'validationcheck' => 'privacy:metadata:local_extension_comment:validationcheck'
             ],
             'privacy:metadata:local_extension_comment'
         );

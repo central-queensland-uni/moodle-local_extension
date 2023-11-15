@@ -76,6 +76,9 @@ class status extends \moodleform {
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
 
+        $mform->addElement('hidden', 'validationtime', time());
+        $mform->setType('validationtime', PARAM_INT);
+
         $policy = get_config('local_extension', 'attachmentpolicy');
         // Moodle rich text editor may leave a <br> in an empty editor.
         if (!empty($policy)) {

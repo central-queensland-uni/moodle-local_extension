@@ -146,6 +146,7 @@ if ($mform->is_cancelled()) {
         'userid' => $USER->id,
         'timestamp' => $now,
         'message' => $form->comment,
+        'validationcheck' => $now . '_' . $USER->id,
     );
     $comment['id'] = $DB->insert_record('local_extension_comment', $comment);
 

@@ -81,6 +81,9 @@ class additional_review extends moodleform {
         $mform->addElement('hidden', 'due'. $cmid);
         $mform->setType('due'. $cmid, PARAM_INT);
 
+        $mform->addElement('hidden', 'validationtime', time());
+        $mform->setType('validationtime', PARAM_INT);
+
         // Print a basic defintion.
         $handler->modify_definition($mod, $mform, $this->_customdata);
 

@@ -146,7 +146,8 @@ if ($mform->is_cancelled()) {
     }
 
     if (!empty($comment)) {
-        $notifycontent[] = $request->add_comment($USER, $comment, $time);
+        $validationtime = $form->validationtime;
+        $notifycontent[] = $request->add_comment($USER, $comment, $time, $validationtime);
     }
 
     // Cleaning up the array.

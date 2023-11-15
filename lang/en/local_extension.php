@@ -246,6 +246,7 @@ $string['privacy:metadata:local_extension_comment:userid'] = 'User id';
 $string['privacy:metadata:local_extension_comment:request'] = 'Request id';
 $string['privacy:metadata:local_extension_comment:timestamp'] = 'Time stamp';
 $string['privacy:metadata:local_extension_comment:message'] = 'Message';
+$string['privacy:metadata:local_extension_comment:validationcheck'] = 'Validation check';
 $string['privacy:metadata:local_extension_comment'] = 'Extension comment table';
 $string['privacy:metadata:local_extension_hist_state:userid'] = 'User id';
 $string['privacy:metadata:local_extension_hist_state:localcmid'] = 'Local cmid';

@@ -129,8 +129,9 @@ if ($mform->is_cancelled()) {
     $notifycontent[] = state::instance()->update_cm_state($request, $USER, $form, $time);
 
     $comment = $form->commentarea;
+    $validationtime = $form->validationtime;
     if (!empty($comment)) {
-        $notifycontent[] = $request->add_comment($USER, $comment, $time);
+        $notifycontent[] = $request->add_comment($USER, $comment, $time, $validationtime);
     }
 
     // Cleaning up the array.

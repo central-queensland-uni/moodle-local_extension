@@ -176,30 +176,42 @@ class request implements \cache_data_source {
     /**
      * Adds a comment to the request
      *
-     * @param stdClass $from The user that has commented.
+     * @param stdClass $user The user that has commented.
      * @param string $msg The comment itself.
      * @param int $time A timestamp.
+     * @param int $validationtime A timestamp.
      * @return object|string
      */
-    public function add_comment($from, $msg, $time = null) {
+    public function add_comment($user, $msg, $time = null, $validationtime = null) {
         global $DB;
 
         if ($time === null) {
             $time = time();
         }
 
+        if ($validationtime === null) {
+            $validationtime = $time;
+        }
+
+        $validationcheck = $validationtime . '_' . $user->id;
+        if ($this->validationcheck_exists($validationcheck)) {
+            // This comment has already been submitted.
+            return null;
+        }
+
         $comment = new stdClass();
         $comment->request = $this->requestid;
-        $comment->userid = $from->id;
+        $comment->userid = $user->id;
         $comment->timestamp = $time;
         $comment->message = $msg;
+        $comment->validationcheck = $validationcheck;
         $cid = $DB->insert_record('local_extension_comment', $comment);
         $comment->id = $cid;
 
         $this->comments[$cid] = $comment;
 
         // Update the lastmod.
-        $this->update_lastmod($from->id, $time);
+        $this->update_lastmod($user->id, $time);
 
         return $comment;
     }
@@ -844,5 +856,24 @@ class request implements \cache_data_source {
         ];
 
         $DB->update_record('local_extension_request', $record);
+    }
+
+    /**
+     * Checks if this validation key already exists (duplicate browser request).
+     *
+     * @param string $validationcheck The validation key
+     * @return bool if the validation check key already exists
+     */
+    public function validationcheck_exists($validationcheck) {
+        $comments = $this->comment_history();
+        foreach ($comments as $comment) {
+            if ($comment->validationcheck == $validationcheck) {
+                // Found a match.
+                return true;
+            }
+        }
+
+        // We didn't find a match.
+        return false;
     }
 }

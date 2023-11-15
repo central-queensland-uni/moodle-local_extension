@@ -187,5 +187,28 @@ function xmldb_local_extension_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2018030705, 'local', 'extension');
     }
 
+
+    if ($oldversion < 2023111501) {
+
+        // Define field extlength to be added to local_extension_comment.
+        $table = new xmldb_table('local_extension_comment');
+        $field = new xmldb_field('validationcheck', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, '0');
+
+        // Conditionally launch add field timestamp.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Update existing comments.
+        $comments = $DB->get_records('local_extension_comment');
+        foreach ($comments as $comment) {
+            $comment->validationcheck = $comment->timestamp . '_' . $comment->userid;
+            $DB->update_record('local_extension_comment', $comment);
+        }
+
+        // Extension savepoint reached.
+        upgrade_plugin_savepoint(true, 2023111501, 'local', 'extension');
+    }
+
     return true;
 }

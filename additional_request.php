@@ -77,9 +77,9 @@ $params = [
     'reviewdate' => 0,
 ];
 
+$statusurl = new moodle_url('/local/extension/status.php', ['id' => $requestid]);
 $requestform = new \local_extension\form\additional_request(null, $params);
 if ($requestform->is_cancelled()) {
-    $statusurl = new moodle_url('/local/extension/status.php', array('id' => $requestid));
     redirect($statusurl);
 
 } else if ($requestdata = $requestform->get_data()) {
@@ -118,6 +118,13 @@ if ($reviewform->is_cancelled()) {
     // The review has been confirmed, try to submit the extension request!
     $notifycontent = [];
 
+    // Check if this form has already been submitted and just redirect if it already has.
+    $validationtime = $reviewdata->validationtime;
+    $validationcheck = $validationtime . '_' . $USER->id;
+    if ($request->validationcheck_exists($validationcheck)) {
+        redirect($statusurl);
+    }
+
     // Update the requested cm length.
     $due = 'due' . $cmid;
     $newdate = $reviewdata->$due;
@@ -132,7 +139,7 @@ if ($reviewform->is_cancelled()) {
     // Adding the comment to the notify content.
     $comment = $reviewdata->commentarea;
     if (!empty($comment)) {
-        $notifycontent[] = $request->add_comment($USER, $comment, $time);
+        $notifycontent[] = $request->add_comment($USER, $comment, $time, $validationtime);
     }
 
     // Obtain any new attachments that have been added.
@@ -215,8 +222,7 @@ if ($reviewform->is_cancelled()) {
     // Invalidate the cache for this request. The content has changed.
     $request->get_data_cache()->delete($request->requestid);
 
-    $url = new moodle_url('/local/extension/status.php', ['id' => $requestid]);
-    redirect($url);
+    redirect($statusurl);
 }
 
 // Output the initial form to request an additional extension.
