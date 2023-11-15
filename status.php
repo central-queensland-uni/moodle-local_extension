@@ -140,7 +140,10 @@ if ($mform->is_cancelled()) {
 
         file_save_draft_area_files($draftitemid, $usercontext->id, 'local_extension', 'attachments', $itemid);
 
-        foreach ($draftfiles as $file) {
+        // Add the new files attached to the attachment history.
+        $files = $fs->get_area_files($usercontext->id, 'local_extension', 'attachments', $itemid, 'id');
+        $files = $processor->diff_new_files($files);
+        foreach ($files as $file) {
             $notifycontent[] = $request->add_attachment_history($file, $time);
         }
     }

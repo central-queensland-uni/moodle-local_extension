@@ -184,20 +184,10 @@ if ($reviewform->is_cancelled()) {
 
         file_save_draft_area_files($draftitemid, $usercontext->id, 'local_extension', 'attachments', $itemid);
 
-        $draftnames = [];
-        $oldnames = [];
-
-        foreach ($draftfiles as $file) {
-            $draftnames[$file->get_filename()] = $file;
-        }
-
-        foreach ($oldfiles as $file) {
-            $oldnames[$file->get_filename()] = $file;
-        }
-
-        // This diff array will contain all the new files to be attached.
-        $diff = array_diff_key($draftnames, $oldnames);
-        foreach ($diff as $file) {
+        // Add the new files attached to the attachment history.
+        $files = $fs->get_area_files($usercontext->id, 'local_extension', 'attachments', $itemid, 'id');
+        $files = $processor->diff_new_files($files);
+        foreach ($files as $file) {
             $notifycontent[] = $request->add_attachment_history($file, $time);
         }
     }

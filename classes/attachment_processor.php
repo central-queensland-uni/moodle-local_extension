@@ -112,4 +112,15 @@ class attachment_processor {
         $this->existingnames[] = $newfilename;
         return $newfilename;
     }
+
+    /**
+     * Returns the diff between the files passed and the old files.
+     * @param stored_file[] $files
+     * @return stored_file[]
+     */
+    public function diff_new_files($files) {
+        return array_filter($files, function($file) {
+            return !array_key_exists($file->get_filename(), $this->existingnames);
+        });
+    }
 }
