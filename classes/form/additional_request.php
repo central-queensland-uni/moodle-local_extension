@@ -76,6 +76,9 @@ class additional_request extends moodleform {
         $mform->addElement('hidden', 'review', 1);
         $mform->setType('review', PARAM_INT);
 
+        $mform->addElement('hidden', 'validationtime', time());
+        $mform->setType('validationtime', PARAM_INT);
+
         $html = html_writer::tag('h2', get_string('form_modify_request_header', 'local_extension'));
         $mform->addElement('html', $html);
 
