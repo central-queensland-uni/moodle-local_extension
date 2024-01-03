@@ -83,7 +83,7 @@ class local_extension_attachment_processor_test extends advanced_testcase {
             'file.dotted (2).txt',
             'file_a (2).txt',
             'file_a1.txt',
-            'file_b (2).txt',
+            'file_b.txt',
             'file_c.txt',
             'file_z (3).txt',
         ];
