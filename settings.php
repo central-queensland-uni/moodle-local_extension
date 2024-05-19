@@ -66,7 +66,7 @@ if ($hassiteconfig) {
 
     $settings->add(new admin_settings_coursecat_select('local_extension/defaultcategory',
         new lang_string('defaultcategory',         'local_extension'),
-        new lang_string('defaultcategoryhelp',     'local_extension'), 0));
+        new lang_string('defaultcategoryhelp',     'local_extension'), 1));
 
     $settings->add(new admin_setting_configcheckbox('local_extension/emaildisable',
         new lang_string('emaildisable',             'local_extension'),

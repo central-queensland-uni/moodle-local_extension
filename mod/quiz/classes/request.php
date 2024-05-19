@@ -368,7 +368,9 @@ class request extends \local_extension\base_request {
         // This is extracted from quiz/overrides.php and slightly modified.
         list($sort, $params) = users_order_by_sql('u');
 
-        $sql = 'SELECT o.*, ' . get_all_user_name_fields(true, 'u') . '
+        $namefields = \core_user\fields::get_name_fields();
+        $nameselect = 'u.' . implode(', u.', $namefields);
+        $sql = 'SELECT o.*, ' . $nameselect . '
                   FROM {quiz_overrides} o
                   JOIN {user} u ON o.userid = u.id
                  WHERE o.quiz = :quizid
