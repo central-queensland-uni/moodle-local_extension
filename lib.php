@@ -51,7 +51,7 @@ function local_extension_extend_navigation_course(\navigation_node $navigation, 
         $label = get_string('nav_index', 'local_extension');
     }
 
-    if (!is_enrolled($PAGE->context, $USER->id) && !$hascap) {
+    if (!is_enrolled($context, $USER->id) && !$hascap) {
         return;
     }
 
