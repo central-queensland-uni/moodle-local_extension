@@ -247,7 +247,9 @@ class utility {
             $event = (count($events) > 0) ? reset($events) : null;
 
             // Get the assignment name from the cm object rather than the events table
-            $event->name = $cm->name;
+            if (is_object($event)) {
+                $event->name = $cm->name;
+            }
 
             $handler = extension::get_enabled_request()[$cm->modname];
         }
