@@ -252,6 +252,9 @@ class utility {
             }
 
             $handler = extension::get_enabled_request()[$cm->modname];
+
+            // We want to cache the cm record and not the full cm_info object.
+            $cm = $cm->get_course_module_record();
         }
 
         $data = new mod_data();

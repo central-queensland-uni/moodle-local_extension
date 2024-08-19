@@ -29,7 +29,6 @@ use local_extension\state;
 use local_extension\utility;
 
 require_once(__DIR__ . '/../../config.php');
-require_once($CFG->dirroot . '/course/lib.php');
 
 global $PAGE, $USER;
 
