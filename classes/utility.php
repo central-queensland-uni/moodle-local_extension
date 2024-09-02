@@ -244,7 +244,7 @@ class utility {
                                            'instance'   => $cm->instance,
                                        ],
                                        'id ASC');
-            $event = (count($events) > 0) ? reset($events) : null;
+            $event = (count($events) > 0) ? reset($events) : new \stdClass();
 
             // Get the assignment name from the cm object rather than the events table
             if (is_object($event)) {
@@ -252,6 +252,9 @@ class utility {
             }
 
             $handler = extension::get_enabled_request()[$cm->modname];
+
+            // We want to cache the cm record and not the full cm_info object.
+            $cm = $cm->get_course_module_record();
         }
 
         $data = new mod_data();
