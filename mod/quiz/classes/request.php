@@ -127,6 +127,12 @@ class request extends \local_extension\base_request {
     }
 
     public function get_due_date($mod) {
+        global $DB;
+
+        if (is_null($mod->event) || !isset($mod->event->timestart)) {
+            $quiz = $DB->get_record('quiz', ['id' => $mod->cm->instance], 'timeclose');
+            return $quiz->timeclose;
+        }
         return $mod->event->timeclose;
     }
 

@@ -264,6 +264,18 @@ class utility {
         $data->course = $course;
         $data->handler = $handler;
 
+        if (is_object($data->event) && !isset($data->event->modulename)) {
+            $data->event->modulename = $cm->modname;
+            $data->event->instance = $cm->instance;
+
+            $timestart = null;
+            if (!is_null($data->handler)) {
+                $timestart = $data->handler->get_due_date($data);
+            }
+
+            $data->event->timestart = $timestart;
+        }
+
         return $data;
     }
 

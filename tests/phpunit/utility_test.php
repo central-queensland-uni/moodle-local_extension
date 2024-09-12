@@ -66,4 +66,59 @@ class local_extension_utility_test extends extension_testcase {
         $actual = utility::calculate_weekdays_elapsed($from, $until);
         self::assertSame($expected, $actual, $message);
     }
+
+    /**
+     * Test for utility::create_request_mod_data().
+     */
+    public function test_create_request_mod_data() {
+        global $DB;
+        $this->resetAfterTest();
+
+        $user = $this->getDataGenerator()->create_user();
+        $course = $this->getDataGenerator()->create_course();
+        $assignmentgenerator = $this->getDataGenerator()->get_plugin_generator('mod_assign');
+        $assignment = $assignmentgenerator->create_instance(['course' => $course->id, 'duedate' => time()]);
+        $assigncm = get_coursemodule_from_instance('assign', $assignment->id);
+        $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
+        $quiz = $quizgenerator->create_instance(['course' => $course->id, 'timeclose' => time()]);
+        $quizcm = get_coursemodule_from_instance('quiz', $quiz->id);
+
+        // Test an existing request with a missing event.
+        $extensionrequest = $this->create_request($user->id);
+        $extensionrequest->update_timestamp($this->create_timestamp('Thursday, 2018-02-01'));
+        $localcm = (object)[
+            'request' => $extensionrequest->requestid,
+            'userid'  => $user->id,
+            'course'  => $course->id,
+            'name'    => $course->fullname,
+            'data'    => '',
+            'length'  => 0,
+        ];
+        $assignlocalcm = clone $localcm;
+        $assignlocalcm->cmid = $assigncm->id;
+        $assignlocalcm->id = $DB->insert_record('local_extension_cm', $assignlocalcm);
+        $quizlocalcm = clone $assignlocalcm;
+        $quizlocalcm->id = null;
+        $quizlocalcm->cmid = $quizcm->id;
+        $quizlocalcm->id = $DB->insert_record('local_extension_cm', $quizlocalcm);
+
+        // Delete all events.
+        $DB->delete_records('event');
+
+        // Test a fake event is created correctly from the assign cm data.
+        $data = utility::create_request_mod_data($assignlocalcm, $user->id);
+        $event = $data->event;
+        $this->assertEquals($assignment->name, $event->name);
+        $this->assertEquals('assign', actual: $event->modulename);
+        $this->assertEquals($assignment->id, actual: $event->instance);
+        $this->assertEquals($assignment->duedate, actual: $event->timestart);
+
+        // Test a fake event is created correctly from the quiz cm data.
+        $data = utility::create_request_mod_data($quizlocalcm, $user->id);
+        $event = $data->event;
+        $this->assertEquals($quiz->name, $event->name);
+        $this->assertEquals('quiz', actual: $event->modulename);
+        $this->assertEquals($quiz->id, actual: $event->instance);
+        $this->assertEquals($quiz->timeclose, actual: $event->timestart);
+    }
 }
