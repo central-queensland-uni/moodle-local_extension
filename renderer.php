@@ -224,7 +224,7 @@ class local_extension_renderer extends plugin_renderer_base {
             $user = core_user::get_user($file->get_userid());
 
             $obj = new stdClass();
-            $obj->file = $this->output->pix_icon(file_file_icon($file, 16), get_mimetype_description($file)) .
+            $obj->file = $this->output->pix_icon(file_file_icon($file), get_mimetype_description($file)) .
                 ' ' . html_writer::link($fileurl, $f->get_filename());
             $obj->user = fullname($user);
             $obj->date = userdate($file->get_timecreated());
