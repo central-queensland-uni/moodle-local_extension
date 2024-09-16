@@ -244,7 +244,7 @@ class utility {
                                            'instance'   => $cm->instance,
                                        ],
                                        'id ASC');
-            $event = (count($events) > 0) ? reset($events) : new \stdClass();
+            $event = (count($events) > 0) ? reset($events) : null;
 
             // Get the assignment name from the cm object rather than the events table
             if (is_object($event)) {
