@@ -76,12 +76,18 @@ class local_extension_utility_test extends extension_testcase {
 
         $user = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
+
+        // Create assignments and quizes with and without due dates.
         $assignmentgenerator = $this->getDataGenerator()->get_plugin_generator('mod_assign');
-        $assignment = $assignmentgenerator->create_instance(['course' => $course->id, 'duedate' => time()]);
-        $assigncm = get_coursemodule_from_instance('assign', $assignment->id);
+        $assignment1 = $assignmentgenerator->create_instance(['course' => $course->id, 'duedate' => time()]);
+        $assign1cm = get_coursemodule_from_instance('assign', $assignment1->id);
+        $assignment2 = $assignmentgenerator->create_instance(['course' => $course->id]);
+        $assign2cm = get_coursemodule_from_instance('assign', $assignment2->id);
         $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
-        $quiz = $quizgenerator->create_instance(['course' => $course->id, 'timeclose' => time()]);
-        $quizcm = get_coursemodule_from_instance('quiz', $quiz->id);
+        $quiz1 = $quizgenerator->create_instance(['course' => $course->id, 'timeclose' => time()]);
+        $quiz1cm = get_coursemodule_from_instance('quiz', $quiz1->id);
+        $quiz2 = $quizgenerator->create_instance(['course' => $course->id]);
+        $quiz2cm = get_coursemodule_from_instance('quiz', $quiz2->id);
 
         // Test an existing request with a missing event.
         $extensionrequest = $this->create_request($user->id);
@@ -94,31 +100,52 @@ class local_extension_utility_test extends extension_testcase {
             'data'    => '',
             'length'  => 0,
         ];
-        $assignlocalcm = clone $localcm;
-        $assignlocalcm->cmid = $assigncm->id;
-        $assignlocalcm->id = $DB->insert_record('local_extension_cm', $assignlocalcm);
-        $quizlocalcm = clone $assignlocalcm;
-        $quizlocalcm->id = null;
-        $quizlocalcm->cmid = $quizcm->id;
-        $quizlocalcm->id = $DB->insert_record('local_extension_cm', $quizlocalcm);
+        $assign1localcm = clone $localcm;
+        $assign1localcm->cmid = $assign1cm->id;
+        $assign1localcm->id = $DB->insert_record('local_extension_cm', $assign1localcm);
+        $assign2localcm = clone $localcm;
+        $assign2localcm->cmid = $assign2cm->id;
+        $assign2localcm->id = $DB->insert_record('local_extension_cm', $assign2localcm);
+        $quiz1localcm = clone $localcm;
+        $quiz1localcm->cmid = $quiz1cm->id;
+        $quiz1localcm->id = $DB->insert_record('local_extension_cm', $quiz1localcm);
+        $quiz2localcm = clone $localcm;
+        $quiz2localcm->cmid = $quiz2cm->id;
+        $quiz2localcm->id = $DB->insert_record('local_extension_cm', $quiz2localcm);
 
         // Delete all events.
         $DB->delete_records('event');
 
-        // Test a fake event is created correctly from the assign cm data.
-        $data = utility::create_request_mod_data($assignlocalcm, $user->id);
+        // Test a fake event is created correctly from the assign1 cm data.
+        $data = utility::create_request_mod_data($assign1localcm, $user->id);
         $event = $data->event;
-        $this->assertEquals($assignment->name, $event->name);
+        $this->assertEquals($assignment1->name, $event->name);
         $this->assertEquals('assign', actual: $event->modulename);
-        $this->assertEquals($assignment->id, actual: $event->instance);
-        $this->assertEquals($assignment->duedate, actual: $event->timestart);
+        $this->assertEquals($assignment1->id, actual: $event->instance);
+        $this->assertEquals($assignment1->duedate, actual: $event->timestart);
 
-        // Test a fake event is created correctly from the quiz cm data.
-        $data = utility::create_request_mod_data($quizlocalcm, $user->id);
+        // Test a fake event is created correctly from the assign2 cm data (assign with no due date).
+        $data = utility::create_request_mod_data($assign2localcm, $user->id);
         $event = $data->event;
-        $this->assertEquals($quiz->name, $event->name);
+        $this->assertEquals($assignment2->name, $event->name);
+        $this->assertEquals('assign', actual: $event->modulename);
+        $this->assertEquals($assignment2->id, actual: $event->instance);
+        $this->assertEquals($assignment2->duedate, actual: $event->timestart);
+
+        // Test a fake event is created correctly from the quiz1 cm data.
+        $data = utility::create_request_mod_data($quiz1localcm, $user->id);
+        $event = $data->event;
+        $this->assertEquals($quiz1->name, $event->name);
         $this->assertEquals('quiz', actual: $event->modulename);
-        $this->assertEquals($quiz->id, actual: $event->instance);
-        $this->assertEquals($quiz->timeclose, actual: $event->timestart);
+        $this->assertEquals($quiz1->id, actual: $event->instance);
+        $this->assertEquals($quiz1->timeclose, actual: $event->timestart);
+
+        // Test a fake event is created correctly from the quiz2 cm data (quiz with no time close).
+        $data = utility::create_request_mod_data($quiz2localcm, $user->id);
+        $event = $data->event;
+        $this->assertEquals($quiz2->name, $event->name);
+        $this->assertEquals('quiz', actual: $event->modulename);
+        $this->assertEquals($quiz2->id, actual: $event->instance);
+        $this->assertEquals($quiz2->timeclose, actual: $event->timestart);
     }
 }
