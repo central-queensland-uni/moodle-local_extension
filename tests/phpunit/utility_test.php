@@ -21,19 +21,28 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace local_extension;
+
+use local_extension\rule;
 use local_extension\test\extension_testcase;
 use local_extension\utility;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
+ * Unit tests for local_extension\utility
  * @package     local_extension
  * @author      Daniel Thee Roperto <daniel.roperto@catalyst-au.net>
  * @copyright   2017 Catalyst IT Australia {@link http://www.catalyst-au.net}
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \local_extension\utility
  */
-class local_extension_utility_test extends extension_testcase {
-    public function provider_for_test_it_calculates_the_number_of_weekdays() {
+class utility_test extends extension_testcase {
+
+    /**
+     * Data provider for test_it_calculates_the_number_of_weekdays().
+     *
+     * @return array
+     */
+    public function provider_for_test_it_calculates_the_number_of_weekdays(): array {
         return [
             ['Monday, 2018-03-05', 'Monday, 2018-03-05', 0],
             ['Monday, 2018-03-05', 'Tuesday, 2018-03-06', 1],
@@ -57,7 +66,10 @@ class local_extension_utility_test extends extension_testcase {
     }
 
     /**
+     * Test for utility::calculate_weekdays_elapsed()
+     *
      * @dataProvider provider_for_test_it_calculates_the_number_of_weekdays
+     * @covers ::calculate_weekdays_elapsed
      */
     public function test_it_calculates_the_number_of_weekdays($from, $until, $expected) {
         $message = "{$from} ~ {$until}";
@@ -68,7 +80,62 @@ class local_extension_utility_test extends extension_testcase {
     }
 
     /**
+     * Test for utility::get_activities() with hidden course.
+     *
+     * @covers ::get_activities
+     */
+    public function test_get_activities_course_visibility() {
+        global $DB;
+        $this->resetAfterTest();
+
+        $user = $this->getDataGenerator()->create_user();
+        $course = $this->getDataGenerator()->create_course();
+        $this->getDataGenerator()->enrol_user($user->id, $course->id, 'student');
+
+        $assignmentgenerator = $this->getDataGenerator()->get_plugin_generator('mod_assign');
+        $assignment = $assignmentgenerator->create_instance(['course' => $course->id, 'duedate' => time()]);
+        $assigncm = get_coursemodule_from_instance('assign', $assignment->id);
+
+        $role = $DB->get_field('role', 'id', ['shortname' => 'manager']);
+        $rule = new rule();
+        $rule->load_from_form((object)[
+            'context'            => 1,
+            'datatype'           => 'assign',
+            'name'               => 'Test rule',
+            'priority'           => 0,
+            'parent'             => 0,
+            'lengthtype'         => rule::RULE_CONDITION_ANY,
+            'lengthfromduedate'  => 0,
+            'elapsedtype'        => rule::RULE_CONDITION_GE,
+            'elapsedfromrequest' => 5,
+            'role'               => $role,
+            'action'             => rule::RULE_ACTION_APPROVE,
+            'template_notify'    => ['text' => ''],
+            'template_user'      => ['text' => ''],
+        ]);
+        $rule->id = $DB->insert_record('local_extension_triggers', $rule);
+
+        $start = time() - 86400;
+        $end = time() + 86400;
+
+        // The assignment should be returned.
+        $activities = utility::get_activities($user->id, $start, $end);
+        $this->assertCount(1, $activities);
+        $this->assertEquals($assigncm->id, array_key_first($activities));
+
+        // Set course visibility to hidden.
+        $course->visible = 0;
+        update_course($course);
+
+        // We shouldn't have the assignment returned.
+        $activities = utility::get_activities($user->id, $start, $end);
+        $this->assertCount(0, $activities);
+    }
+
+    /**
      * Test for utility::create_request_mod_data().
+     *
+     * @covers ::create_request_mod_data
      */
     public function test_create_request_mod_data() {
         global $DB;
