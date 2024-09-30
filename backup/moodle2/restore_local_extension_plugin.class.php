@@ -39,7 +39,7 @@ class restore_local_extension_plugin extends restore_local_plugin {
         $paths[] = new restore_path_element('comment', $this->get_pathfor('requests/request/comments/comment'));
         $paths[] = new restore_path_element('cm', $this->get_pathfor('requests/request/cm'));
         $paths[] = new restore_path_element('hist_file', $this->get_pathfor('requests/request/hist_files/hist_file'));
-        $paths[] = new restore_path_element('hist_state', $this->get_pathfor('requests/request/cm/hist_states/hist_state'));
+        $paths[] = new restore_path_element('hist_state', $this->get_pathfor('requests/request/hist_states/hist_state'));
         $paths[] = new restore_path_element('subscription', $this->get_pathfor('requests/request/cm/subscriptions/subscription'));
         $paths[] = new restore_path_element('hist_trig', $this->get_pathfor('requests/request/cm/hist_trigs/hist_trig'));
 
@@ -218,7 +218,7 @@ class restore_local_extension_plugin extends restore_local_plugin {
 
         $data = (object)$data;
         $data->requestid = $this->get_new_parentid('request');
-        $data->localcmid = $this->get_new_parentid('cm');
+        $data->localcmid =  $this->task->get_moduleid();
         $data->userid = $this->get_mappingid('user', $data->userid);
 
         $DB->insert_record('local_extension_hist_state', $data);
