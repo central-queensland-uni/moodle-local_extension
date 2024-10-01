@@ -131,7 +131,7 @@ class backup_local_extension_plugin extends backup_plugin {
         $request->add_child($comments);
         $request->add_child($cm);
         $request->add_child($histfiles);
-        $cm->add_child($histstates);
+        $request->add_child($histstates);
         $cm->add_child($histtriggers);
         $cm->add_child($subscriptions);
 
@@ -173,6 +173,8 @@ class backup_local_extension_plugin extends backup_plugin {
         // Define the sources of the children of $request.
         $comment->set_source_table('local_extension_comment',
             ['request' => '../../id']);
+        $histstate->set_source_table('local_extension_hist_state',
+            ['requestid' => '../../id']);
         $cm->set_source_table('local_extension_cm',
             ['request' => backup::VAR_PARENTID]);
 
@@ -185,8 +187,6 @@ class backup_local_extension_plugin extends backup_plugin {
             ['request' => '../../id']);
 
         // Define the sources of the children of $cm.
-        $histstate->set_source_table('local_extension_hist_state',
-            ['requestid' => '../../../id', 'localcmid' => '../../id']);
         $histtrigger->set_source_table('local_extension_hist_trig',
             ['requestid' => '../../../id', 'localcmid' => '../../id']);
         $subscription->set_source_table('local_extension_subscription',
