@@ -138,17 +138,17 @@ class backup_local_extension_plugin extends backup_plugin {
         // Define the source of $trigger, which should only include the ones from subscriptions and triggers.
         // The restore will decide to restore or not since there may be a lot of duplicated.
         $trigger->set_source_sql('SELECT *
-                                    FROM mdl_local_extension_triggers
+                                    FROM {local_extension_triggers}
                                    WHERE id IN (
                                           SELECT trig as id
-                                            FROM mdl_local_extension_subscription
-                                            JOIN mdl_local_extension_cm cm ON cm.id = localcmid
+                                            FROM {local_extension_subscription}
+                                            JOIN {local_extension_cm} cm ON cm.id = localcmid
                                            WHERE cmid = :moduleid1
                                              AND course = :courseid1
                                            UNION
                                           SELECT trig as id
-                                            FROM mdl_local_extension_hist_trig
-                                            JOIN mdl_local_extension_cm cm ON cm.id = localcmid
+                                            FROM {local_extension_hist_trig}
+                                            JOIN {local_extension_cm} cm ON cm.id = localcmid
                                            WHERE cmid = :moduleid2
                                              AND course = :courseid2
                                          )',
