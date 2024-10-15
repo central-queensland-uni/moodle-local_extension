@@ -162,8 +162,9 @@ class request extends \local_extension\base_request {
     }
 
     public function get_due_date($mod) {
-        if (is_null($mod->event)) {
-            return null;
+        if (is_null($mod->event) || !isset($mod->event->timestart)) {
+            [$course, $cm] = get_course_and_cm_from_cmid($mod->cm->id);
+            return $cm->customdata['duedate'] ?? 0;
         }
         return $mod->event->timestart;
     }

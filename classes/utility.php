@@ -78,7 +78,7 @@ class utility {
         $groups = null;
 
         // A list of courses that the $request->userid is enrolled in, this will be passed to the next filters.
-        $courses = enrol_get_users_courses($userid);
+        $courses = enrol_get_users_courses($userid, true);
 
         // Get the events matching our criteria.
         list($courses, $group, $user2) = calendar_set_filters($courses, true);
@@ -263,6 +263,18 @@ class utility {
         $data->localcm = cm::from_userid($cm->id, $userid);
         $data->course = $course;
         $data->handler = $handler;
+
+        if (is_object($data->event) && !isset($data->event->modulename)) {
+            $data->event->modulename = $cm->modname;
+            $data->event->instance = $cm->instance;
+
+            $timestart = null;
+            if (!is_null($data->handler)) {
+                $timestart = $data->handler->get_due_date($data);
+            }
+
+            $data->event->timestart = $timestart;
+        }
 
         return $data;
     }

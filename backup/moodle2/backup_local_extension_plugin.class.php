@@ -131,24 +131,24 @@ class backup_local_extension_plugin extends backup_plugin {
         $request->add_child($comments);
         $request->add_child($cm);
         $request->add_child($histfiles);
-        $cm->add_child($histstates);
+        $request->add_child($histstates);
         $cm->add_child($histtriggers);
         $cm->add_child($subscriptions);
 
         // Define the source of $trigger, which should only include the ones from subscriptions and triggers.
         // The restore will decide to restore or not since there may be a lot of duplicated.
         $trigger->set_source_sql('SELECT *
-                                    FROM mdl_local_extension_triggers
+                                    FROM {local_extension_triggers}
                                    WHERE id IN (
                                           SELECT trig as id
-                                            FROM mdl_local_extension_subscription
-                                            JOIN mdl_local_extension_cm cm ON cm.id = localcmid
+                                            FROM {local_extension_subscription}
+                                            JOIN {local_extension_cm} cm ON cm.id = localcmid
                                            WHERE cmid = :moduleid1
                                              AND course = :courseid1
                                            UNION
                                           SELECT trig as id
-                                            FROM mdl_local_extension_hist_trig
-                                            JOIN mdl_local_extension_cm cm ON cm.id = localcmid
+                                            FROM {local_extension_hist_trig}
+                                            JOIN {local_extension_cm} cm ON cm.id = localcmid
                                            WHERE cmid = :moduleid2
                                              AND course = :courseid2
                                          )',
@@ -173,6 +173,8 @@ class backup_local_extension_plugin extends backup_plugin {
         // Define the sources of the children of $request.
         $comment->set_source_table('local_extension_comment',
             ['request' => '../../id']);
+        $histstate->set_source_table('local_extension_hist_state',
+            ['requestid' => '../../id']);
         $cm->set_source_table('local_extension_cm',
             ['request' => backup::VAR_PARENTID]);
 
@@ -185,8 +187,6 @@ class backup_local_extension_plugin extends backup_plugin {
             ['request' => '../../id']);
 
         // Define the sources of the children of $cm.
-        $histstate->set_source_table('local_extension_hist_state',
-            ['requestid' => '../../../id', 'localcmid' => '../../id']);
         $histtrigger->set_source_table('local_extension_hist_trig',
             ['requestid' => '../../../id', 'localcmid' => '../../id']);
         $subscription->set_source_table('local_extension_subscription',
