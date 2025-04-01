@@ -168,7 +168,12 @@ class restore_local_extension_plugin extends restore_local_plugin {
         global $DB;
 
         $data = (object)$data;
-        $data->userid = $this->get_mappingid('user', $data->userid);
+        $mappedid = $this->get_mappingid('user', $data->userid);
+        // If user mapping fails, skip.
+        if (!$mappedid || !is_numeric($mappedid)) {
+            return;
+        }
+        $data->userid = $mappedid;
         $data->requestid = $this->get_new_parentid('request');
 
         // We need a new item id, we get that from the request, so set this as itemname.
