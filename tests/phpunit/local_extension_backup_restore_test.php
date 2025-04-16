@@ -60,9 +60,9 @@ class local_extension_backup_restore_test extends advanced_testcase {
 
         $this->setup_initial_data($course, $user, $assign);
 
-        $backupid = $this->backup($course);
+        $backupid = $this->backup($course, true);
 
-        $newcourseid = $this->restore($backupid, $course, '');
+        $newcourseid = $this->restore($backupid, $course, '', true);
 
         $restoreassign = $DB->get_record('assign', ['course' => $newcourseid]);
 
@@ -72,11 +72,85 @@ class local_extension_backup_restore_test extends advanced_testcase {
             "SELECT * FROM {local_extension_request} WHERE userid = ? ORDER BY id DESC LIMIT 1",
             [$user->id]);
 
+        $extensioncmdata = $DB->get_record_sql(
+            "SELECT * FROM {local_extension_cm} WHERE course IN (?)",
+            [$newcourseid]);
+
+        $extensioncommentdata = $DB->get_record_sql(
+            "SELECT * FROM {local_extension_comment} WHERE request IN
+            (SELECT request FROM {local_extension_cm} WHERE course IN (?))",
+            [$newcourseid]);
+
+        $extensionhiststatedata = $DB->get_record_sql(
+            "SELECT * FROM {local_extension_hist_state} WHERE requestid IN
+            (SELECT request FROM {local_extension_cm} WHERE course IN (?))",
+            [$newcourseid]);
+
+        $extensionsubdata = $DB->get_record_sql(
+            "SELECT * FROM {local_extension_subscription} WHERE requestid IN
+            (SELECT request FROM {local_extension_cm} WHERE course IN (?))",
+             [$newcourseid]);
+
         $this->assertEquals(2, count($DB->get_records('local_extension_request', ['userid' => $user->id])));
         $this->assertNotEmpty( $DB->get_records('local_extension_comment', ['request' => $requestrestoreddata->id]));
         $this->assertNotEmpty($DB->get_records('local_extension_subscription', ['requestid' => $requestrestoreddata->id ]));
         $this->assertNotEmpty($DB->get_records('local_extension_hist_state', ['localcmid' => $restorecmid]));
         $this->assertNotEmpty($DB->get_records('local_extension_cm', ['course' => $newcourseid]));
+
+        $this->assertNotEmpty($extensioncmdata);
+        $this->assertNotEmpty($extensioncommentdata);
+        $this->assertNotEmpty($extensionhiststatedata);
+        $this->assertNotEmpty($extensionsubdata);
+
+    }
+
+    /**
+     * Test the backup and restore of triggers and requests without userinfo.
+     * @covers ::backup
+     * @covers ::restore
+     */
+    public function test_backup_and_restore_triggers_requests_without_userinfo() {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user();
+
+        // Create an assignment module.
+        $assign = $this->getDataGenerator()->create_module('assign', [
+                    'course' => $course->id,
+                    'name' => 'Test Assignment',
+                    'duedate' => time(),
+        ]);
+
+        $this->setup_initial_data($course, $user, $assign);
+
+        $backupid = $this->backup($course, false);
+
+        $newcourseid = $this->restore($backupid, $course, '', false);
+
+        $extensioncmdata = $DB->get_record_sql(
+            "SELECT * FROM {local_extension_cm} WHERE course IN (?)",
+            [$newcourseid]);
+
+        $extensioncommentdata = $DB->get_record_sql(
+            "SELECT * FROM {local_extension_comment} WHERE request IN
+            (SELECT request FROM {local_extension_cm} WHERE course IN (?))",
+            [$newcourseid]);
+
+        $extensionhiststatedata = $DB->get_record_sql(
+            "SELECT * FROM {local_extension_hist_state} WHERE requestid IN
+            (SELECT request FROM {local_extension_cm} WHERE course IN (?))",
+            [$newcourseid]);
+
+        $extensionsubdata = $DB->get_record_sql(
+            "SELECT * FROM {local_extension_subscription} WHERE requestid IN
+            (SELECT request FROM {local_extension_cm} WHERE course IN (?))",
+            [$newcourseid]);
+
+        $this->assertEmpty($extensioncmdata);
+        $this->assertEmpty($extensioncommentdata);
+        $this->assertEmpty($extensionhiststatedata);
+        $this->assertEmpty($extensionsubdata);
 
     }
 
@@ -151,9 +225,10 @@ class local_extension_backup_restore_test extends advanced_testcase {
      * Backs up a course to a temp directory.
      *
      * @param stdClass $course Course object to backup
+     * @param bool $userinfo Whether to include user data in the backup (default: false)
      * @return string ID of backup
      */
-    protected function backup(stdClass $course): string {
+    protected function backup(stdClass $course, $userinfo = false): string {
         global $USER, $CFG;
         require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
 
@@ -169,7 +244,7 @@ class local_extension_backup_restore_test extends advanced_testcase {
         );
 
         $bc->get_plan()->get_setting('users')->set_status(\backup_setting::NOT_LOCKED);
-        $bc->get_plan()->get_setting('users')->set_value(true);
+        $bc->get_plan()->get_setting('users')->set_value($userinfo);
         $bc->get_plan()->get_setting('logs')->set_value(true);
         $backupid = $bc->get_backupid();
 
@@ -185,9 +260,10 @@ class local_extension_backup_restore_test extends advanced_testcase {
      * @param string $backupid Backup ID
      * @param stdClass $course Original course object
      * @param string $suffix Suffix to add after original course shortname and fullname
+     * @param bool $userinfo Whether to include user data in the restore (default: false)
      * @return int New course ID
      */
-    protected function restore(string $backupid, stdClass $course, string $suffix): int {
+    protected function restore(string $backupid, stdClass $course, string $suffix, $userinfo = false): int {
         global $USER, $CFG;
         require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 
@@ -207,7 +283,7 @@ class local_extension_backup_restore_test extends advanced_testcase {
             backup::TARGET_NEW_COURSE
         );
 
-        $rc->get_plan()->get_setting('users')->set_value(true);
+        $rc->get_plan()->get_setting('users')->set_value($userinfo);
         $rc->get_plan()->get_setting('logs')->set_value(true);
 
         $rc->execute_precheck();
