@@ -30,7 +30,7 @@ class restore_local_extension_plugin extends restore_local_plugin {
     public function define_module_plugin_structure() {
         $paths = [];
 
-        if (!$this->task->get_setting('userinfo')) {
+        if (!$this->task->get_setting('users')->get_value()) {
             return $paths;
         }
 
