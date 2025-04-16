@@ -28,7 +28,7 @@ class backup_local_extension_plugin extends backup_plugin {
     public function define_plugin_structure($connectionpoint) {
         global $DB;
 
-        if ($connectionpoint != 'module' || !$this->task->get_setting('userinfo')) {
+        if ($connectionpoint != 'module' || !$this->task->get_setting('users')->get_value()) {
             parent::define_plugin_structure($connectionpoint);
             return;
         }
