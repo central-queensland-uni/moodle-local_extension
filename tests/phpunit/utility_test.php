@@ -164,7 +164,7 @@ class utility_test extends extension_testcase {
             'userid'  => $user->id,
             'course'  => $course->id,
             'name'    => $course->fullname,
-            'data'    => '',
+            'data'    => time() + 86400,
             'length'  => 0,
         ];
         $assign1localcm = clone $localcm;

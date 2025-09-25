@@ -52,7 +52,7 @@ class local_extension_rule_test extends extension_testcase {
             'course'  => $course->id,
             'name'    => $course->fullname,
             'cmid'    => $cmid,
-            'data'    => '',
+            'data'    => time() + 86400,
             'length'  => 0,
         ]);
 
